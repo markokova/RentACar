@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using RentACar.Model;
+using RentACar.Repository.Common;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -10,13 +11,11 @@ using System.Threading.Tasks;
 
 namespace RentACar.Repository
 {
-    public class PersonRepository
+    public class PersonRepository : IPersonRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int InsertPerson(Person Person)
+        public int SavePerson(Person person)
         {
-            Guid id = Guid.NewGuid();
-            Person.Id = id;
             int affectedRows = 0;
             try
             {
@@ -27,10 +26,10 @@ namespace RentACar.Repository
 
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@Value1", Person.Id);
-                        command.Parameters.AddWithValue("@Value2", Person.FirstName);
-                        command.Parameters.AddWithValue("@Value3", Person.LastName);
-                        command.Parameters.AddWithValue("@Value4", Person.Email);
+                        command.Parameters.AddWithValue("@Value1", person.Id);
+                        command.Parameters.AddWithValue("@Value2", person.FirstName);
+                        command.Parameters.AddWithValue("@Value3", person.LastName);
+                        command.Parameters.AddWithValue("@Value4", person.Email);
                         affectedRows = command.ExecuteNonQuery();
                     }
                 }
@@ -42,7 +41,7 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public List<Person> GetPersons()
+        public List<Person> GetPeople()
         {
             List<Person> Persons = new List<Person>();
             try

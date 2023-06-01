@@ -15,7 +15,9 @@ namespace RentACar.Service
         public int SaveReservation(Reservation reservation)
         {
             ReservationRepository reservationRepository = new ReservationRepository();
-            int affectedRows = reservationRepository.InsertReservation(reservation);
+            Guid id = Guid.NewGuid();
+            reservation.Id = id;
+            int affectedRows = reservationRepository.SaveReservation(reservation);
             return affectedRows;
         }
 

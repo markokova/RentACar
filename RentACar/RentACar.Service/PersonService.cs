@@ -11,12 +11,12 @@ namespace RentACar.Service
 {
     public class PersonService : IPersonService
     {
-        public int SavePerson(Person Person)
+        public int SavePerson(Person person)
         {
             PersonRepository personRepository = new PersonRepository();
-            //Guid id = Guid.NewGuid();
-            //Person.Id = id;
-            int affectedRows = personRepository.InsertPerson(Person);
+            Guid id = Guid.NewGuid();
+            person.Id = id;
+            int affectedRows = personRepository.SavePerson(person);
 
             return affectedRows;
         }
@@ -25,7 +25,7 @@ namespace RentACar.Service
         {
             PersonRepository personRepository = new PersonRepository();
 
-            List<Person> Persons = personRepository.GetPersons();
+            List<Person> Persons = personRepository.GetPeople();
 
             return Persons;
         }

@@ -163,9 +163,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Mappers\RestDomainCarMapper.cs" />
+    <Compile Include="Mappers\RestDomainPersonMapper.cs" />
+    <Compile Include="Mappers\RestDomainReservationMapper.cs" />
     <Compile Include="Models\CarRest.cs" />
     <Compile Include="Models\PersonRest.cs" />
-    <Compile Include="Models\ReservationRest.cs" />
+    <Compile Include="Models\ReservationRestGet.cs" />
+    <Compile Include="Models\ReservationRestPost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -312,6 +316,10 @@
     <ProjectReference Include="..\RentACar.Common\RentACar.Common.csproj">
       <Project>{AECC46F8-BD27-4B23-95F0-59AB52EC65EF}</Project>
       <Name>RentACar.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RentACar.Model.Common\RentACar.Model.Common.csproj">
+      <Project>{F68B1F55-6EC7-42D3-8CAC-0394DB04A7D1}</Project>
+      <Name>RentACar.Model.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\RentACar.Model\RentACar.Model.csproj">
       <Project>{F4D74F21-D17B-454A-A793-8A6E7C3CD7A3}</Project>

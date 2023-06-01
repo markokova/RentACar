@@ -8,16 +8,15 @@ using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
+using RentACar.Repository.Common;
 
 namespace RentACar.Repository
 {
-    public class CarRepository
+    public class CarRepository : ICarRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int InsertCar(Car car)
+        public int SaveCar(Car car)
         {
-            Guid id = Guid.NewGuid();
-            car.Id = id;
             int affectedRows = 0;
             try
             {

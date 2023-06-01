@@ -5,11 +5,13 @@ using System.Net.Http;
 using System.Net;
 using System.Web;
 using System.Web.Http;
+using RentACar.Model;
+using RentACar.WebApi.Models;
 using RentACar.Service;
 using RentACar.Common.Responses;
-using RentACar.Model;
+using RentACar.WebApi.Mappers;
 
-namespace RentACar.WebApi.Controllers
+namespace RentAReservation.WebApi.Controllers
 {
     public class ReservationController : ApiController
     {
@@ -18,11 +20,15 @@ namespace RentACar.WebApi.Controllers
         {
             ReservationService reservationService = new ReservationService();
             List<ReservationResponse> responses = reservationService.GetReservations();
-            if (responses.Count == 0)
+            RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
+
+            List<ReservationRestGet> reservationsRest = reservationMapper.MapToRest(responses);
+
+            if (reservationsRest.Count == 0)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, "There is no Reservations in the database.");
             }
-            return Request.CreateResponse(HttpStatusCode.OK, responses);
+            return Request.CreateResponse(HttpStatusCode.OK, reservationsRest);
         }
         [HttpGet]
         public HttpResponseMessage GetReservation(Guid id)
@@ -31,31 +37,43 @@ namespace RentACar.WebApi.Controllers
 
             ReservationResponse response = reservationService.GetReservation(id);
 
-            if (response.reservation.Id == Guid.Empty)
+            RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
+
+            ReservationRestGet reservationRest = reservationMapper.MapToRest(response);
+
+            if (reservationRest == null)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, $"There is no Reservation with Id:{id} in the database.");
             }
-            return Request.CreateResponse(HttpStatusCode.OK, response);
+            return Request.CreateResponse(HttpStatusCode.OK, reservationRest);
         }
 
         [HttpPost]
-        public HttpResponseMessage SaveNewReservation([FromBody] Reservation Reservation)
+        public HttpResponseMessage SaveNewReservation([FromBody] ReservationRestPost reservationRest)
         {
             ReservationService reservationService = new ReservationService();
-            int affectedRows = reservationService.SaveReservation(Reservation);
+            RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
+
+            Reservation reservation = reservationMapper.MapRestToDomain(reservationRest);
+
+            int affectedRows = reservationService.SaveReservation(reservation);
 
             if (affectedRows > 0)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, Reservation);
+                return Request.CreateResponse(HttpStatusCode.OK, reservation);
             }
             return Request.CreateResponse(HttpStatusCode.BadRequest, "Object isn't inserted.");
         }
 
         [HttpPut]
-        public HttpResponseMessage UpdateReservation(Guid id, [FromBody] Reservation Reservation)
+        public HttpResponseMessage UpdateReservation(Guid id, [FromBody] ReservationRestPost reservationRest)
         {
             ReservationService reservationService = new ReservationService();
-            int affectedRows = reservationService.UpdateReservation(id, Reservation);
+            RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
+
+            Reservation reservation = reservationMapper.MapRestToDomain(reservationRest);
+
+            int affectedRows = reservationService.UpdateReservation(id, reservation);
             if (affectedRows > 0)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, id);

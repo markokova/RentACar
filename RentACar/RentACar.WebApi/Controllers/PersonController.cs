@@ -8,6 +8,7 @@ using System.Web.Http;
 using RentACar.Service;
 using RentACar.Model;
 using RentACar.WebApi.Models;
+using RentACar.WebApi.Mappers;
 
 namespace RentACar.WebApi.Controllers
 {
@@ -19,8 +20,9 @@ namespace RentACar.WebApi.Controllers
             PersonService personService = new PersonService();
             List<Person> people =  personService.GetPeople();
             List<PersonRest> peopleRest = new List<PersonRest>();
-            
-            peopleRest = MapToRest(people);
+            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
+
+            peopleRest = personMapper.MapToRest(people);
 
             if (peopleRest.Count == 0)
             {
@@ -33,12 +35,14 @@ namespace RentACar.WebApi.Controllers
         public HttpResponseMessage GetPerson(Guid id)
         {
             PersonService personService = new PersonService();
+            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
+
 
             List<Person> people = new List<Person>();
 
             people.Add(personService.GetPerson(id));
 
-            List<PersonRest> peopleRest = MapToRest(people);
+            List<PersonRest> peopleRest = personMapper.MapToRest(people);
 
             if (people.Count == 0)
             {
@@ -51,8 +55,9 @@ namespace RentACar.WebApi.Controllers
         public HttpResponseMessage SaveNewPerson([FromBody] PersonRest personRest)
         {
             PersonService personService = new PersonService();
+            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
-            Person person = MapRestToDomain(personRest);
+            Person person = personMapper.MapRestToDomain(personRest);
 
             int affectedRows = personService.SavePerson(person);
 
@@ -67,8 +72,9 @@ namespace RentACar.WebApi.Controllers
         public HttpResponseMessage UpdatePerson(Guid id, [FromBody] PersonRest personRest)
         {
             PersonService personService = new PersonService();
+            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
-            Person person = MapRestToDomain(personRest);
+            Person person = personMapper.MapRestToDomain(personRest);
 
             int affectedRows = personService.UpdatePerson(id, person);
             if (affectedRows > 0)
@@ -91,29 +97,29 @@ namespace RentACar.WebApi.Controllers
             return Request.CreateResponse(HttpStatusCode.NotFound, id);
         }
 
-        private List<PersonRest> MapToRest(List<Person> people)
-        {
-            List<PersonRest> peopleRest = new List<PersonRest>();
+        //private List<PersonRest> MapToRest(List<Person> people)
+        //{
+        //    List<PersonRest> peopleRest = new List<PersonRest>();
             
-            foreach(Person person in people)
-            {
-                PersonRest personRest = new PersonRest();
-                personRest.FirstName = person.FirstName;
-                personRest.LastName = person.LastName;
-                personRest.Email = person.Email;
-                peopleRest.Add(personRest);
-            }
-            return peopleRest;
-        }
+        //    foreach(Person person in people)
+        //    {
+        //        PersonRest personRest = new PersonRest();
+        //        personRest.FirstName = person.FirstName;
+        //        personRest.LastName = person.LastName;
+        //        personRest.Email = person.Email;
+        //        peopleRest.Add(personRest);
+        //    }
+        //    return peopleRest;
+        //}
 
-        private Person MapRestToDomain(PersonRest personRest)
-        {
-            Person person = new Person();
-            person.FirstName = personRest.FirstName;
-            person.LastName = personRest.LastName;
-            person.Email = personRest.Email;
+        //private Person MapRestToDomain(PersonRest personRest)
+        //{
+        //    Person person = new Person();
+        //    person.FirstName = personRest.FirstName;
+        //    person.LastName = personRest.LastName;
+        //    person.Email = personRest.Email;
 
-            return person;
-        }
+        //    return person;
+        //}
     }
 }

@@ -104,9 +104,17 @@
       <Project>{AECC46F8-BD27-4B23-95F0-59AB52EC65EF}</Project>
       <Name>RentACar.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RentACar.Model.Common\RentACar.Model.Common.csproj">
+      <Project>{F68B1F55-6EC7-42D3-8CAC-0394DB04A7D1}</Project>
+      <Name>RentACar.Model.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RentACar.Model\RentACar.Model.csproj">
       <Project>{F4D74F21-D17B-454A-A793-8A6E7C3CD7A3}</Project>
       <Name>RentACar.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RentACar.Repository.Common\RentACar.Repository.Common.csproj">
+      <Project>{F2C7569D-D801-46D6-B7E4-867934DCB733}</Project>
+      <Name>RentACar.Repository.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

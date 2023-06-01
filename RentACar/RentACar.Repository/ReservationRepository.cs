@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using RentACar.Common.Responses;
 using RentACar.Model;
+using RentACar.Repository.Common;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,13 +12,11 @@ using System.Threading.Tasks;
 
 namespace RentACar.Repository
 {
-    public class ReservationRepository
+    public class ReservationRepository : IReservationRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int InsertReservation(Reservation Reservation)
-        {
-            Guid id = Guid.NewGuid();
-            Reservation.Id = id;
+        public int SaveReservation(Reservation reservation)
+        {  
             int affectedRows = 0;
             try
             {
@@ -28,10 +27,10 @@ namespace RentACar.Repository
 
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@Value1", Reservation.Id);
-                        command.Parameters.AddWithValue("@Value2", Reservation.ReservationDate);
-                        command.Parameters.AddWithValue("@Value3", Reservation.CarId);
-                        command.Parameters.AddWithValue("@Value4", Reservation.PersonId);
+                        command.Parameters.AddWithValue("@Value1", reservation.Id);
+                        command.Parameters.AddWithValue("@Value2", reservation.ReservationDate);
+                        command.Parameters.AddWithValue("@Value3", reservation.CarId);
+                        command.Parameters.AddWithValue("@Value4", reservation.PersonId);
                         affectedRows = command.ExecuteNonQuery();
                     }
                 }

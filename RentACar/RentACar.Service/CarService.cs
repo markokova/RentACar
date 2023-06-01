@@ -14,7 +14,9 @@ namespace RentACar.Service
         public int SaveCar(Car car)
         {
             CarRepository carRepository = new CarRepository();
-            return carRepository.InsertCar(car);
+            Guid id = Guid.NewGuid();
+            car.Id = id;
+            return carRepository.SaveCar(car);
         }
 
         public List<Car> GetCars()
