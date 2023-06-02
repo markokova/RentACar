@@ -10,14 +10,14 @@ namespace RentACar.Service.Common
 {
     public interface IReservationService
     {
-        ReservationResponse GetReservation(Guid id);
+        Task<ReservationResponse> GetReservationAsync(Guid id);
 
-        List<ReservationResponse> GetReservations();
+        Task<List<ReservationResponse>> GetReservationsAsync();
 
-        int SaveReservation(Reservation reservation);
+        Task<int> SaveReservationAsync(Reservation reservation);
 
-        int UpdateReservation(Guid id, Reservation reservation);
+        Task<int> UpdateReservationAsync(Guid id, Reservation reservation);
 
-        int DeleteReservation(Guid id);
+        Task<int> DeleteReservationAsync(Guid id);
     }
 }

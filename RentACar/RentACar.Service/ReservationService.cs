@@ -12,41 +12,41 @@ namespace RentACar.Service
 {
     public class ReservationService : IReservationService
     {
-        public int SaveReservation(Reservation reservation)
+        public async Task<int> SaveReservationAsync(Reservation reservation)
         {
             ReservationRepository reservationRepository = new ReservationRepository();
             Guid id = Guid.NewGuid();
             reservation.Id = id;
-            int affectedRows = reservationRepository.SaveReservation(reservation);
+            int affectedRows = await reservationRepository.SaveReservationAsync(reservation);
             return affectedRows;
         }
 
-        public List<ReservationResponse> GetReservations()
+        public async Task<List<ReservationResponse>> GetReservationsAsync()
         {
             ReservationRepository reservationRepository = new ReservationRepository();
 
-            return reservationRepository.GetReservations();
+            return await reservationRepository.GetReservationsAsync();
         }
 
-        public ReservationResponse GetReservation(Guid id)
+        public async Task<ReservationResponse> GetReservationAsync(Guid id)
         {
             ReservationRepository reservationRepository = new ReservationRepository();
 
-            return reservationRepository.GetReservation(id);
+            return await reservationRepository.GetReservationAsync(id);
         }
 
-        public int UpdateReservation(Guid id, Reservation newReservation)
+        public async Task<int> UpdateReservationAsync(Guid id, Reservation newReservation)
         {
             ReservationRepository reservationRepository = new ReservationRepository();
 
-            return reservationRepository.UpdateReservation(id, newReservation);
+            return await reservationRepository.UpdateReservationAsync(id, newReservation);
         }
 
-        public int DeleteReservation(Guid id)
+        public async Task<int> DeleteReservationAsync(Guid id)
         {
             ReservationRepository reservationRepository = new ReservationRepository();
 
-            return reservationRepository.DeleteReservation(id);
+            return await reservationRepository.DeleteReservationAsync(id);
         }
     }
 }

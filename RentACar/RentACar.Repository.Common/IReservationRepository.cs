@@ -10,14 +10,14 @@ namespace RentACar.Repository.Common
 {
     public interface IReservationRepository
     {
-        int SaveReservation(Reservation reservation);
+        Task<int> SaveReservationAsync(Reservation reservation);
 
-        List<ReservationResponse> GetReservations();
+        Task<List<ReservationResponse>> GetReservationsAsync();
 
-        ReservationResponse GetReservation(Guid id);
+        Task<ReservationResponse> GetReservationAsync(Guid id);
 
-        int UpdateReservation(Guid id, Reservation reservation);
+        Task<int> UpdateReservationAsync(Guid id, Reservation reservation);
 
-        int DeleteReservation(Guid id);
+        Task<int> DeleteReservationAsync(Guid id);
     }
 }

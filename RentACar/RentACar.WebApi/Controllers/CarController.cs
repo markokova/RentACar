@@ -9,6 +9,7 @@ using RentACar.Service;
 using RentACar.Model;
 using RentACar.WebApi.Models;
 using RentACar.WebApi.Mappers;
+using System.Threading.Tasks;
 
 namespace RentACar.WebApi.Controllers
 {
@@ -16,11 +17,11 @@ namespace RentACar.WebApi.Controllers
     {
 
         [HttpGet]
-        public HttpResponseMessage GetCars()
+        public async Task<HttpResponseMessage> GetCarsAsync()
         {
             CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
-            List<Car> cars = carService.GetCars();
+            List<Car> cars = await carService.GetCarsAsync();
             List<CarRest> carsRest = new List<CarRest>();
 
             carsRest = carMapper.MapToRest(cars);
@@ -33,14 +34,14 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpGet]
-        public HttpResponseMessage GetCar(Guid id)
+        public async Task<HttpResponseMessage> GetCarAsync(Guid id)
         {
             CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             List<Car> cars = new List<Car>();
 
-            cars.Add(carService.GetCar(id));
+            cars.Add(await carService.GetCarAsync(id));
 
 
             List<CarRest> carsRest = carMapper.MapToRest(cars);
@@ -70,14 +71,14 @@ namespace RentACar.WebApi.Controllers
         //}
 
         [HttpPost]
-        public HttpResponseMessage SaveNewCar([FromBody] CarRest carRest)
+        public async Task<HttpResponseMessage> SaveNewCarAsync([FromBody] CarRest carRest)
         {
             CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             Car car = carMapper.MapRestToDomain(carRest);
 
-            int affectedRows = carService.SaveCar(car);
+            int affectedRows = await carService.SaveCarAsync(car);
 
             if (affectedRows > 0)
             {
@@ -87,14 +88,14 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpPut]
-        public HttpResponseMessage UpdateCar(Guid id, [FromBody] CarRest carRest)
+        public async Task<HttpResponseMessage> UpdateCarAsync(Guid id, [FromBody] CarRest carRest)
         {
             CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             Car car = carMapper.MapRestToDomain(carRest);
 
-            int affectedRows = carService.UpdateCar(id, car);
+            int affectedRows = await carService.UpdateCarAsync(id, car);
             if (affectedRows > 0)
             {
 
@@ -104,10 +105,10 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpDelete]
-        public HttpResponseMessage DeleteCar(Guid id)
+        public async Task<HttpResponseMessage> DeleteCarAsync(Guid id)
         {
             CarService carService = new CarService();
-            int affectedRows = carService.DeleteCar(id);
+            int affectedRows = await carService.DeleteCarAsync(id);
 
             if (affectedRows > 0)
             {
@@ -115,32 +116,5 @@ namespace RentACar.WebApi.Controllers
             }
             return Request.CreateResponse(HttpStatusCode.NotFound, id);
         }
-
-        //private List<CarRest> MapToRest(List<Car> cars)
-        //{
-        //    List<CarRest> carsRest = new List<CarRest>();
-
-        //    foreach (Car car in cars)
-        //    {
-        //        CarRest carRest = new CarRest();
-        //        carRest.Manufacturer = car.Manufacturer;
-        //        carRest.Model = car.Model;
-        //        carRest.NumberOfSeats = car.NumberOfSeats;
-        //        carRest.Price = car.Price;
-        //        carsRest.Add(carRest);
-        //    }
-        //    return carsRest;
-        //}
-
-        //private Car MapRestToDomain(CarRest carRest)
-        //{
-        //    Car car = new Car();
-        //    car.Manufacturer = carRest.Manufacturer;
-        //    car.Model = carRest.Model;
-        //    car.NumberOfSeats = carRest.NumberOfSeats;
-        //    car.Price = carRest.Price;
-
-        //    return car;
-        //}
     }
 }

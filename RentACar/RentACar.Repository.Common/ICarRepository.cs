@@ -9,14 +9,14 @@ namespace RentACar.Repository.Common
 {
     public interface ICarRepository
     {
-        int SaveCar(Car car);
+        Task<int> SaveCarAsync(Car car);
 
-        List<Car> GetCars();
+        Task<List<Car>> GetCarsAsync();
 
-        Car GetCar(Guid id);
+        Task<Car> GetCarAsync(Guid id);
 
-        int UpdateCar(Guid id, Car car);
+        Task<int> UpdateCarAsync(Guid id, Car car);
 
-        int DeleteCar(Guid id);
+        Task<int> DeleteCarAsync(Guid id);
     }
 }

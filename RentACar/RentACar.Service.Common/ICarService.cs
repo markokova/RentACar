@@ -9,14 +9,14 @@ namespace RentACar.Service.Common
 {
     public interface ICarService
     {
-        Car GetCar(Guid id);
+        Task<Car> GetCarAsync(Guid id);
 
-        List<Car> GetCars();
+        Task<List<Car>> GetCarsAsync();
 
-        int SaveCar(Car car);
+        Task<int> SaveCarAsync(Car car);
 
-        int UpdateCar(Guid id, Car car);
+        Task<int> UpdateCarAsync(Guid id, Car car);
 
-        int DeleteCar(Guid id);
+        Task<int> DeleteCarAsync(Guid id);
     }
 }

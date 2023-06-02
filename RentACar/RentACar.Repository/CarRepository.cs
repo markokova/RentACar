@@ -15,7 +15,7 @@ namespace RentACar.Repository
     public class CarRepository : ICarRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int SaveCar(Car car)
+        public async Task<int> SaveCarAsync(Car car)
         {
             int affectedRows = 0;
             try
@@ -32,7 +32,7 @@ namespace RentACar.Repository
                         command.Parameters.AddWithValue("@Value3", car.Model);
                         command.Parameters.AddWithValue("@Value4", car.NumberOfSeats);
                         command.Parameters.AddWithValue("@Value5", car.Price);
-                        affectedRows = command.ExecuteNonQuery();
+                        affectedRows = await command.ExecuteNonQueryAsync();
                     }
                 }
             }
@@ -43,7 +43,7 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public List<Car> GetCars()
+        public async Task<List<Car>> GetCarsAsync()
         {
             List<Car> cars = new List<Car>();
             try
@@ -54,7 +54,7 @@ namespace RentACar.Repository
                     string query = "SELECT * FROM \"Car\"";
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             while (reader.Read())
@@ -78,12 +78,12 @@ namespace RentACar.Repository
             return cars;
         }
 
-        public Car GetCar(Guid id)
+        public async Task<Car> GetCarAsync(Guid id)
         {
-            return this.GetCarById(id);
+            return await this.GetCarByIdAsync(id);
         }
 
-        public List<Car> GetCarByPrice(double price)
+        public async Task<List<Car>> GetCarByPriceAsync(double price)
         {
             List<Car> cars = new List<Car>();
             try
@@ -95,7 +95,7 @@ namespace RentACar.Repository
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("Price", price);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             while (reader.Read())
@@ -119,9 +119,9 @@ namespace RentACar.Repository
             return cars;
         }
 
-        public int UpdateCar(Guid id, Car newCar)
+        public async Task<int> UpdateCarAsync(Guid id, Car newCar)
         {
-            Car oldCar = this.GetCarById(id);
+            Car oldCar = await this.GetCarByIdAsync(id);
             int affectedRows = 0;
             StringBuilder builder = new StringBuilder("UPDATE \"Car\" SET ");
 
@@ -168,7 +168,7 @@ namespace RentACar.Repository
                             command.Parameters.AddWithValue("@OldIdValue", oldCar.Id);
                             command.CommandText = query;
                             command.Connection = connection;
-                            affectedRows = command.ExecuteNonQuery();
+                            affectedRows = await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
@@ -180,9 +180,9 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public int DeleteCar(Guid id)
+        public async Task<int> DeleteCarAsync(Guid id)
         {
-            Car carToDelete = this.GetCarById(id);
+            Car carToDelete = await this.GetCarByIdAsync(id);
             int affectedRows = 0;
             try
             {
@@ -191,11 +191,17 @@ namespace RentACar.Repository
                     using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "DELETE FROM \"Car\" WHERE \"Id\" = @IdValue";
+                        string query = "DELETE FROM \"Reservation\" WHERE \"CarId\" = @CarIdValue";
                         using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                         {
+                            command.Parameters.AddWithValue("@CarIdValue", id);
+                            affectedRows = await command.ExecuteNonQueryAsync();
+                        }
+                        string query2 = "DELETE FROM \"Car\" WHERE \"Id\" = @IdValue";
+                        using (NpgsqlCommand command = new NpgsqlCommand(query2, connection))
+                        {
                             command.Parameters.AddWithValue("@IdValue", id);
-                            affectedRows = command.ExecuteNonQuery();
+                            affectedRows = await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
@@ -207,7 +213,7 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        private Car GetCarById(Guid id)
+        private async Task<Car> GetCarByIdAsync(Guid id)
         {
             Car car = null;
             try
@@ -219,7 +225,7 @@ namespace RentACar.Repository
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@Value", id);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             car = new Car();

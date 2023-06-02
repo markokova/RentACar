@@ -11,46 +11,46 @@ namespace RentACar.Service
 {
     public class CarService : ICarService
     {
-        public int SaveCar(Car car)
+        public async Task<int> SaveCarAsync(Car car)
         {
             CarRepository carRepository = new CarRepository();
             Guid id = Guid.NewGuid();
             car.Id = id;
-            return carRepository.SaveCar(car);
+            return await carRepository.SaveCarAsync(car);
         }
 
-        public List<Car> GetCars()
+        public async Task<List<Car>> GetCarsAsync()
         {
             CarRepository carRepository = new CarRepository();
 
-            return carRepository.GetCars();
+            return await carRepository.GetCarsAsync();
         }
 
-        public Car GetCar(Guid id)
+        public async Task<Car> GetCarAsync(Guid id)
         {
             CarRepository carRepository = new CarRepository();
 
-            return carRepository.GetCar(id);
+            return await carRepository.GetCarAsync(id);
         }
 
-        public List<Car> GetCarByPrice(double price)
+        public async Task<List<Car>> GetCarByPriceAsync(double price)
         {
             CarRepository carRepository = new CarRepository();
 
-            return carRepository.GetCarByPrice(price);
+            return await carRepository.GetCarByPriceAsync(price);
         }
 
-        public int UpdateCar(Guid id, Car newCar)
+        public async Task<int> UpdateCarAsync(Guid id, Car newCar)
         {
             CarRepository carRepository = new CarRepository();
-            return carRepository.UpdateCar(id, newCar);
+            return await carRepository.UpdateCarAsync(id, newCar);
         }
 
-        public int DeleteCar(Guid id)
+        public async Task<int> DeleteCarAsync(Guid id)
         {
             CarRepository carRepository = new CarRepository();
 
-            return carRepository.DeleteCar(id);
+            return await carRepository.DeleteCarAsync(id);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace RentACar.Repository
     public class ReservationRepository : IReservationRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int SaveReservation(Reservation reservation)
+        public async Task<int> SaveReservationAsync(Reservation reservation)
         {  
             int affectedRows = 0;
             try
@@ -31,7 +31,7 @@ namespace RentACar.Repository
                         command.Parameters.AddWithValue("@Value2", reservation.ReservationDate);
                         command.Parameters.AddWithValue("@Value3", reservation.CarId);
                         command.Parameters.AddWithValue("@Value4", reservation.PersonId);
-                        affectedRows = command.ExecuteNonQuery();
+                        affectedRows = await command.ExecuteNonQueryAsync();
                     }
                 }
             }
@@ -42,7 +42,7 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public List<ReservationResponse> GetReservations()
+        public async Task<List<ReservationResponse>> GetReservationsAsync()
         {
             Reservation reservation = null; Car car = null; Person person = null;
             List<ReservationResponse> responses = new List<ReservationResponse>();
@@ -59,7 +59,7 @@ namespace RentACar.Repository
                         "INNER JOIN \"Person\" p ON r.\"PersonId\" = p.\"Id\"";
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             while (reader.Read())
@@ -102,7 +102,7 @@ namespace RentACar.Repository
         //return Request.CreateResponse(HttpStatusCode.OK, new {Reservation = response.reservation, Car = response.car, Person = response.person});
         //or there is another way to fetch attributes of multilpe objects and return them
 
-        public ReservationResponse GetReservation(Guid id)
+        public async Task<ReservationResponse> GetReservationAsync(Guid id)
         {
             Reservation reservation = null; Car car = null; Person person = null;
             ReservationResponse response = new ReservationResponse();
@@ -120,7 +120,7 @@ namespace RentACar.Repository
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@ReservationId", id);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             reservation = new Reservation(); car = new Car(); person = new Person();
@@ -152,9 +152,9 @@ namespace RentACar.Repository
             return response;
         }
 
-        public int UpdateReservation(Guid id, Reservation newReservation)
+        public async Task<int> UpdateReservationAsync(Guid id, Reservation newReservation)
         {
-            Reservation oldReservation = this.GetReservationById(id);
+            Reservation oldReservation = await this.GetReservationByIdAsync(id);
             int affectedRows = 0;
             StringBuilder builder = new StringBuilder("UPDATE \"Reservation\" SET ");
 
@@ -196,7 +196,7 @@ namespace RentACar.Repository
                             command.Parameters.AddWithValue("@OldIdValue", oldReservation.Id);
                             command.CommandText = query;
                             command.Connection = connection;
-                            affectedRows = command.ExecuteNonQuery();
+                            affectedRows = await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
@@ -208,12 +208,12 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public int DeleteReservation(Guid id)
+        public async Task<int> DeleteReservationAsync(Guid id)
         {
             int affectedRows = 0;
             try
             {
-                Reservation ReservationToDelete = this.GetReservationById(id);
+                Reservation ReservationToDelete = await this.GetReservationByIdAsync(id);
                 if (ReservationToDelete != null)
                 {
                     using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
@@ -223,7 +223,7 @@ namespace RentACar.Repository
                         using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@IdValue", id);
-                            affectedRows = command.ExecuteNonQuery();
+                            affectedRows = await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
@@ -236,7 +236,7 @@ namespace RentACar.Repository
         }
 
 
-        private Reservation GetReservationById(Guid id)
+        private async Task<Reservation> GetReservationByIdAsync(Guid id)
         {
             Reservation reservation = null;
             try
@@ -248,7 +248,7 @@ namespace RentACar.Repository
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@ReservationId", id);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             reservation = new Reservation();
