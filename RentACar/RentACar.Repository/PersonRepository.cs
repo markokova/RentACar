@@ -14,7 +14,7 @@ namespace RentACar.Repository
     public class PersonRepository : IPersonRepository
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
-        public int SavePerson(Person person)
+        public async Task<int> SavePersonAsync(Person person)
         {
             int affectedRows = 0;
             try
@@ -30,7 +30,7 @@ namespace RentACar.Repository
                         command.Parameters.AddWithValue("@Value2", person.FirstName);
                         command.Parameters.AddWithValue("@Value3", person.LastName);
                         command.Parameters.AddWithValue("@Value4", person.Email);
-                        affectedRows = command.ExecuteNonQuery();
+                        affectedRows =  await command.ExecuteNonQueryAsync();
                     }
                 }
             }
@@ -41,9 +41,9 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public List<Person> GetPeople()
+        public async Task<List<Person>> GetPeopleAsync()
         {
-            List<Person> Persons = new List<Person>();
+            List<Person> people = new List<Person>();
             try
             {
                 using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
@@ -52,17 +52,17 @@ namespace RentACar.Repository
                     string query = "SELECT * FROM \"Person\"";
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             while (reader.Read())
                             {
-                                Person Person = new Person();
-                                Person.Id = (Guid)reader["Id"];
-                                Person.FirstName = (string)reader["FirstName"];
-                                Person.LastName = (string)reader["LastName"];
-                                Person.Email = (string)reader["Email"];
-                                Persons.Add(Person);
+                                Person person = new Person();
+                                person.Id = (Guid)reader["Id"];
+                                person.FirstName = (string)reader["FirstName"];
+                                person.LastName = (string)reader["LastName"];
+                                person.Email = (string)reader["Email"];
+                                people.Add(person);
                             }
                         }
                     }
@@ -72,17 +72,17 @@ namespace RentACar.Repository
             {
                 Trace.WriteLine(ex.Message.ToString());
             }
-            return Persons;
+            return people;
         }
 
-        public Person GetPerson(Guid id)
+        public async Task<Person> GetPersonAsync(Guid id)
         {
-            return this.GetPersonById(id);
+            return await this.GetPersonByIdAsync(id);
         }
 
-        public int UpdatePerson(Guid id, Person newPerson)
+        public async Task<int> UpdatePersonAsync(Guid id, Person newPerson)
         {
-            Person oldPerson = GetPersonById(id);
+            Person oldPerson = await GetPersonByIdAsync(id);
             int affectedRows = 0;
             StringBuilder builder = new StringBuilder("UPDATE \"Person\" SET ");
 
@@ -121,10 +121,10 @@ namespace RentACar.Repository
                             }
                             builder.Append(" WHERE \"Id\" = @OldIdValue");
                             string query = builder.ToString();
-                            command.Parameters.AddWithValue("@OldIdValue", oldPerson.Id);
                             command.CommandText = query;
                             command.Connection = connection;
-                            affectedRows = command.ExecuteNonQuery();
+                            command.Parameters.AddWithValue("@OldIdValue", oldPerson.Id);
+                            affectedRows = await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
@@ -136,9 +136,9 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public int DeletePerson(Guid id)
+        public async Task<int> DeletePersonAsync(Guid id)
         {
-            Person PersonToDelete = this.GetPersonById(id);
+            Person PersonToDelete = await this.GetPersonByIdAsync(id);
             int affectedRows = 0;
             try
             {
@@ -147,11 +147,18 @@ namespace RentACar.Repository
                     using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "DELETE FROM \"Person\" WHERE \"Id\" = @IdValue";
+                        string query = "DELETE FROM \"Reservation\" WHERE \"PersonId\" = @PersonIdValue";
                         using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                         {
+                            command.Parameters.AddWithValue("@PersonIdValue", id);
+                            affectedRows = await command.ExecuteNonQueryAsync();
+                        }
+                        string query2 = "DELETE FROM \"Person\" WHERE \"Id\" = @IdValue";
+                        using (NpgsqlCommand command = new NpgsqlCommand(query2, connection))
+                        {
                             command.Parameters.AddWithValue("@IdValue", id);
-                            affectedRows = command.ExecuteNonQuery();
+                            affectedRows = await command.ExecuteNonQueryAsync();
+                            
                         }
                     }
                 }
@@ -163,7 +170,7 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        private Person GetPersonById(Guid id)
+        private async Task<Person> GetPersonByIdAsync(Guid id)
         {
             Person Person = null;
             try
@@ -175,7 +182,7 @@ namespace RentACar.Repository
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@Value", id);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             Person = new Person();

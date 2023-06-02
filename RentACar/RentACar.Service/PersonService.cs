@@ -11,44 +11,44 @@ namespace RentACar.Service
 {
     public class PersonService : IPersonService
     {
-        public int SavePerson(Person person)
+        public async Task<int> SavePersonAsync(Person person)
         {
             PersonRepository personRepository = new PersonRepository();
             Guid id = Guid.NewGuid();
             person.Id = id;
-            int affectedRows = personRepository.SavePerson(person);
+            int affectedRows = await personRepository.SavePersonAsync(person);
 
             return affectedRows;
         }
 
-        public List<Person> GetPeople()
+        public async Task<List<Person>> GetPeopleAsync()
         {
             PersonRepository personRepository = new PersonRepository();
 
-            List<Person> Persons = personRepository.GetPeople();
+            List<Person> Persons = await personRepository.GetPeopleAsync();
 
             return Persons;
         }
 
-        public Person GetPerson(Guid id)
+        public async Task<Person> GetPersonAsync(Guid id)
         {
             PersonRepository personRepository = new PersonRepository();
 
-            return personRepository.GetPerson(id);
+            return await personRepository.GetPersonAsync(id);
         }
 
-        public int UpdatePerson(Guid id, Person newPerson)
+        public async Task<int> UpdatePersonAsync(Guid id, Person newPerson)
         {
             PersonRepository personRepository = new PersonRepository();
 
-            return personRepository.UpdatePerson(id, newPerson);
+            return await personRepository.UpdatePersonAsync(id, newPerson);
         }
 
-        public int DeletePerson(Guid id)
+        public async Task<int> DeletePersonAsync(Guid id)
         {
             PersonRepository personRepository = new PersonRepository();
 
-            return personRepository.DeletePerson(id);
+            return await personRepository.DeletePersonAsync(id);
         }
     }
 }

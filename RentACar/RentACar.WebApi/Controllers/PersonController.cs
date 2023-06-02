@@ -9,30 +9,31 @@ using RentACar.Service;
 using RentACar.Model;
 using RentACar.WebApi.Models;
 using RentACar.WebApi.Mappers;
+using System.Threading.Tasks;
 
 namespace RentACar.WebApi.Controllers
 {
     public class PersonController : ApiController
     {
         [HttpGet]
-        public HttpResponseMessage GetPersons()
+        public async Task<HttpResponseMessage> GetPeopleAsync()
         {
             PersonService personService = new PersonService();
-            List<Person> people =  personService.GetPeople();
-            List<PersonRest> peopleRest = new List<PersonRest>();
+            List<Person> people =  await personService.GetPeopleAsync();
+            
             RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
-            peopleRest = personMapper.MapToRest(people);
+            List<PersonRest> peopleRest = personMapper.MapToRest(people);
 
-            if (peopleRest.Count == 0)
+            if (peopleRest.Count == 0 || peopleRest[0] == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound, "There is no Persons in the database.");
+                return Request.CreateResponse(HttpStatusCode.NotFound, "There are no people in the database.");
             }
             return Request.CreateResponse(HttpStatusCode.OK, peopleRest);
         }
 
         [HttpGet]
-        public HttpResponseMessage GetPerson(Guid id)
+        public async Task<HttpResponseMessage> GetPersonAsync(Guid id)
         {
             PersonService personService = new PersonService();
             RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
@@ -40,11 +41,11 @@ namespace RentACar.WebApi.Controllers
 
             List<Person> people = new List<Person>();
 
-            people.Add(personService.GetPerson(id));
+            people.Add(await personService.GetPersonAsync(id));
 
             List<PersonRest> peopleRest = personMapper.MapToRest(people);
 
-            if (people.Count == 0)
+            if (people.Count == 0 || people[0] == null)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, $"There is no Person with Id:{id} in the database.");
             }
@@ -52,14 +53,14 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpPost]
-        public HttpResponseMessage SaveNewPerson([FromBody] PersonRest personRest)
+        public async Task<HttpResponseMessage> SaveNewPersonAsync([FromBody] PersonRest personRest)
         {
             PersonService personService = new PersonService();
             RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
             Person person = personMapper.MapRestToDomain(personRest);
 
-            int affectedRows = personService.SavePerson(person);
+            int affectedRows = await personService.SavePersonAsync(person);
 
             if (affectedRows > 0)
             {
@@ -69,14 +70,14 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpPut]
-        public HttpResponseMessage UpdatePerson(Guid id, [FromBody] PersonRest personRest)
+        public async Task<HttpResponseMessage> UpdatePersonAsync(Guid id, [FromBody] PersonRest personRest)
         {
             PersonService personService = new PersonService();
             RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
             Person person = personMapper.MapRestToDomain(personRest);
 
-            int affectedRows = personService.UpdatePerson(id, person);
+            int affectedRows = await personService.UpdatePersonAsync(id, person);
             if (affectedRows > 0)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, id);
@@ -85,10 +86,10 @@ namespace RentACar.WebApi.Controllers
         }
 
         [HttpDelete]
-        public HttpResponseMessage DeletePerson(Guid id)
+        public async Task<HttpResponseMessage> DeletePersonAsync(Guid id)
         {
             PersonService personService = new PersonService();
-            int affectedRows = personService.DeletePerson(id);
+            int affectedRows = await personService.DeletePersonAsync(id);
 
             if (affectedRows > 0)
             {

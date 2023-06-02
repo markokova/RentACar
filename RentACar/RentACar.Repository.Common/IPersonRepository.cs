@@ -9,14 +9,14 @@ namespace RentACar.Repository.Common
 {
     public interface IPersonRepository
     {
-        int SavePerson(Person person);
+        Task<int> SavePersonAsync(Person person);
 
-        List<Person> GetPeople();
+        Task<List<Person>> GetPeopleAsync();
 
-        Person GetPerson(Guid id);
+        Task<Person> GetPersonAsync(Guid id);
 
-        int UpdatePerson(Guid id, Person person);
+        Task<int> UpdatePersonAsync(Guid id, Person person);
 
-        int DeletePerson(Guid id);
+        Task<int> DeletePersonAsync(Guid id);
     }
 }
