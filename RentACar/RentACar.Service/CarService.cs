@@ -1,4 +1,6 @@
-﻿using RentACar.Model;
+﻿using RentACar.Common;
+using RentACar.Common.Responses;
+using RentACar.Model;
 using RentACar.Repository;
 using RentACar.Service.Common;
 using System;
@@ -19,11 +21,11 @@ namespace RentACar.Service
             return await carRepository.SaveCarAsync(car);
         }
 
-        public async Task<List<Car>> GetCarsAsync()
+        public async Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
         {
             CarRepository carRepository = new CarRepository();
 
-            return await carRepository.GetCarsAsync();
+            return await carRepository.GetCarsAsync(paging, sorting, filtering);
         }
 
         public async Task<Car> GetCarAsync(Guid id)

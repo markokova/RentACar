@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RentACar.Common;
+using RentACar.Common.Responses;
 using RentACar.Model;
 
 namespace RentACar.Repository.Common
@@ -11,7 +13,7 @@ namespace RentACar.Repository.Common
     {
         Task<int> SaveCarAsync(Car car);
 
-        Task<List<Car>> GetCarsAsync();
+        Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering);
 
         Task<Car> GetCarAsync(Guid id);
 

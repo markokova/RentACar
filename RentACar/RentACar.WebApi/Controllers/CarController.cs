@@ -10,6 +10,8 @@ using RentACar.Model;
 using RentACar.WebApi.Models;
 using RentACar.WebApi.Mappers;
 using System.Threading.Tasks;
+using RentACar.Common;
+using RentACar.Common.Responses;
 
 namespace RentACar.WebApi.Controllers
 {
@@ -17,20 +19,23 @@ namespace RentACar.WebApi.Controllers
     {
 
         [HttpGet]
-        public async Task<HttpResponseMessage> GetCarsAsync()
+        public async Task<HttpResponseMessage> GetCarsAsync(double? minPrice = null, double? maxPrice = null, int? numberOfSeats = null, int pageSize = 10, int pageNumber = 1, string orderBy = "Id", string sortOrder = "DESC")
         {
+            Sorting sorting = new Sorting(); Paging paging = new Paging(); CarFiltering filtering = new CarFiltering();
+            paging.PageSize = pageSize; paging.CurrentPageNumber = pageNumber;
+            sorting.Orderby = orderBy; sorting.SortOrder = sortOrder;
+            filtering.MinPrice = minPrice; filtering.MaxPrice = maxPrice; filtering.NumberOfSeats = numberOfSeats;
             CarService carService = new CarService();
-            RestDomainCarMapper carMapper = new RestDomainCarMapper();
-            List<Car> cars = await carService.GetCarsAsync();
-            List<CarRest> carsRest = new List<CarRest>();
+            CarsResponse response = await carService.GetCarsAsync(paging, sorting, filtering);
 
-            carsRest = carMapper.MapToRest(cars);
+            RestDomainCarMapper carMapper = new RestDomainCarMapper();
+            List<CarRest> carsRest =  carMapper.MapToRest(response.Cars);
 
             if (carsRest.Count == 0)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, "There is no cars in the database.");
             }
-            return Request.CreateResponse(HttpStatusCode.OK, carsRest);
+            return Request.CreateResponse(HttpStatusCode.OK, new { Cars = carsRest, TotalNumberOfResults = response.TotalNumberOfResults });
         }
 
         [HttpGet]
@@ -116,5 +121,10 @@ namespace RentACar.WebApi.Controllers
             }
             return Request.CreateResponse(HttpStatusCode.NotFound, id);
         }
+
+        //private Paging Paginate()
+        //{
+        //    Paging paging = new Paging();
+        //}
     }
 }

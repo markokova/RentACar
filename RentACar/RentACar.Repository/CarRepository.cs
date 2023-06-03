@@ -9,6 +9,8 @@ using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 using RentACar.Repository.Common;
+using RentACar.Common;
+using RentACar.Common.Responses;
 
 namespace RentACar.Repository
 {
@@ -42,18 +44,34 @@ namespace RentACar.Repository
             }
             return affectedRows;
         }
-
-        public async Task<List<Car>> GetCarsAsync()
+        public async Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
         {
             List<Car> cars = new List<Car>();
+            CarsResponse response = new CarsResponse();
+
+            StringBuilder queryBuilder = new StringBuilder("SELECT * FROM \"Car\" ");
+            StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(*) FROM \"Car\" ");
+
+            queryBuilder = FilterResults(queryBuilder,filtering);
+            countQueryBuilder = FilterResults(countQueryBuilder,filtering);
+            
+            queryBuilder.Append(" ORDER BY \"Car\".\"");
+            queryBuilder.Append(sorting.Orderby + "\" ");
+            queryBuilder.Append(sorting.SortOrder + " ");
+            queryBuilder.Append("LIMIT " + paging.PageSize + " ");
+            queryBuilder.Append("OFFSET " + (paging.CurrentPageNumber - 1) * (paging.PageSize - 1));            
             try
             {
                 using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT * FROM \"Car\"";
-                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                    //string query = "SELECT * FROM \"Car\" ORDER BY \"Car\".@OrderBy @SortOrder LIMIT @PageSize OFFSET @OffsetValue";
+                    using (NpgsqlCommand command = new NpgsqlCommand(queryBuilder.ToString(), connection))
                     {
+                        //if(sorting.SortOrder == "Desc" || sorting.SortOrder == "DESC" || sorting.SortOrder == "desc")
+                        //{
+                        //    queryBuilder.Append("WHERE \"Car\".@OrderBy > ");
+                        //}
                         NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
@@ -68,6 +86,13 @@ namespace RentACar.Repository
                                 cars.Add(car);
                             }
                         }
+                        reader.Close();
+                        response.Cars = cars;
+                    }
+                    using (NpgsqlCommand command = new NpgsqlCommand(countQueryBuilder.ToString(), connection))
+                    {
+                        object countResult = await command.ExecuteScalarAsync();
+                        response.TotalNumberOfResults = Convert.ToInt32(countResult);
                     }
                 }
             }
@@ -75,7 +100,7 @@ namespace RentACar.Repository
             {
                 Trace.WriteLine(ex.Message.ToString());
             }
-            return cars;
+            return response;
         }
 
         public async Task<Car> GetCarAsync(Guid id)
@@ -244,6 +269,31 @@ namespace RentACar.Repository
                 Trace.WriteLine(ex.Message.ToString());
             }
             return car;
+        }
+
+        private StringBuilder FilterResults(StringBuilder builder, CarFiltering filtering)
+        {
+            if (filtering.MinPrice.HasValue && filtering.MaxPrice.HasValue)
+            {
+                builder.Append("WHERE \"Car\".\"Price\" BETWEEN " + filtering.MinPrice + " AND " + filtering.MaxPrice);
+            }
+            else if (filtering.MinPrice.HasValue)
+            {
+                builder.Append("WHERE \"Car\".\"Price\" > " + filtering.MinPrice);
+            }
+            else if (filtering.MaxPrice.HasValue)
+            {
+                builder.Append("WHERE \"Car\".\"Price\" < " + filtering.MaxPrice);
+            }
+            if (filtering.NumberOfSeats.HasValue && !filtering.MaxPrice.HasValue && !filtering.MinPrice.HasValue)
+            {
+                builder.Append("WHERE \"Car\".\"NumberOfSeats\" = " + filtering.NumberOfSeats);
+            }
+            else if (filtering.NumberOfSeats.HasValue)
+            {
+                builder.Append(" AND \"Car\".\"NumberOfSeats\" = " + filtering.NumberOfSeats);
+            }
+            return builder;
         }
     }
 }
