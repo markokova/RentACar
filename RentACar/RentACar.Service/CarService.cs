@@ -2,6 +2,7 @@
 using RentACar.Common.Responses;
 using RentACar.Model;
 using RentACar.Repository;
+using RentACar.Repository.Common;
 using RentACar.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -13,46 +14,40 @@ namespace RentACar.Service
 {
     public class CarService : ICarService
     {
+        protected ICarRepository Repository { get; set; }
+
+        public CarService()
+        {
+            Repository = new CarRepository();
+        }
         public async Task<int> SaveCarAsync(Car car)
         {
-            CarRepository carRepository = new CarRepository();
             Guid id = Guid.NewGuid();
             car.Id = id;
-            return await carRepository.SaveCarAsync(car);
+            return await Repository.SaveCarAsync(car);
         }
 
         public async Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
         {
-            CarRepository carRepository = new CarRepository();
 
-            return await carRepository.GetCarsAsync(paging, sorting, filtering);
+            return await Repository.GetCarsAsync(paging, sorting, filtering);
         }
 
         public async Task<Car> GetCarAsync(Guid id)
         {
-            CarRepository carRepository = new CarRepository();
 
-            return await carRepository.GetCarAsync(id);
+            return await Repository.GetCarAsync(id);
         }
 
-        public async Task<List<Car>> GetCarByPriceAsync(double price)
-        {
-            CarRepository carRepository = new CarRepository();
-
-            return await carRepository.GetCarByPriceAsync(price);
-        }
 
         public async Task<int> UpdateCarAsync(Guid id, Car newCar)
         {
-            CarRepository carRepository = new CarRepository();
-            return await carRepository.UpdateCarAsync(id, newCar);
+            return await Repository.UpdateCarAsync(id, newCar);
         }
 
         public async Task<int> DeleteCarAsync(Guid id)
         {
-            CarRepository carRepository = new CarRepository();
-
-            return await carRepository.DeleteCarAsync(id);
+            return await Repository.DeleteCarAsync(id);
         }
     }
 }

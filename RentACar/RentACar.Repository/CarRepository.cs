@@ -108,41 +108,6 @@ namespace RentACar.Repository
             return await this.GetCarByIdAsync(id);
         }
 
-        public async Task<List<Car>> GetCarByPriceAsync(double price)
-        {
-            List<Car> cars = new List<Car>();
-            try
-            {
-                using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string query = "select * from \"Car\" where \"Car\".\"Price\" < @Price";
-                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("Price", price);
-                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                Car car = new Car();
-                                car.Id = (Guid)reader["Id"];
-                                car.Manufacturer = (string)reader["Manufacturer"];
-                                car.Model = (string)reader["Model"];
-                                car.NumberOfSeats = (int)reader["NumberOfSeats"];
-                                car.Price = (double)reader["Price"];
-                                cars.Add(car);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex.Message.ToString());
-            }
-            return cars;
-        }
 
         public async Task<int> UpdateCarAsync(Guid id, Car newCar)
         {
@@ -273,25 +238,23 @@ namespace RentACar.Repository
 
         private StringBuilder FilterResults(StringBuilder builder, CarFiltering filtering)
         {
-            if (filtering.MinPrice.HasValue && filtering.MaxPrice.HasValue)
+
+            builder.Append("WHERE 1 = 1");
+            
+            if(filtering != null)
             {
-                builder.Append("WHERE \"Car\".\"Price\" BETWEEN " + filtering.MinPrice + " AND " + filtering.MaxPrice);
-            }
-            else if (filtering.MinPrice.HasValue)
-            {
-                builder.Append("WHERE \"Car\".\"Price\" > " + filtering.MinPrice);
-            }
-            else if (filtering.MaxPrice.HasValue)
-            {
-                builder.Append("WHERE \"Car\".\"Price\" < " + filtering.MaxPrice);
-            }
-            if (filtering.NumberOfSeats.HasValue && !filtering.MaxPrice.HasValue && !filtering.MinPrice.HasValue)
-            {
-                builder.Append("WHERE \"Car\".\"NumberOfSeats\" = " + filtering.NumberOfSeats);
-            }
-            else if (filtering.NumberOfSeats.HasValue)
-            {
-                builder.Append(" AND \"Car\".\"NumberOfSeats\" = " + filtering.NumberOfSeats);
+                if (filtering.MinPrice.HasValue)
+                {
+                    builder.Append(" AND \"Car\".\"Price\" > " + filtering.MinPrice);
+                }
+                if (filtering.MaxPrice.HasValue)
+                {
+                    builder.Append(" AND \"Car\".\"Price\" < " + filtering.MaxPrice);
+                }
+                if (filtering.NumberOfSeats.HasValue)
+                {
+                    builder.Append(" AND \"Car\".\"NumberOfSeats\" = " + filtering.NumberOfSeats);
+                }
             }
             return builder;
         }

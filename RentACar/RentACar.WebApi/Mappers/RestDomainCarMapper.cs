@@ -13,14 +13,17 @@ namespace RentACar.WebApi.Mappers
         {
             List<CarRest> carsRest = new List<CarRest>();
 
-            foreach (Car car in cars)
+            if(cars != null)
             {
-                CarRest carRest = new CarRest();
-                carRest.Manufacturer = car.Manufacturer;
-                carRest.Model = car.Model;
-                carRest.NumberOfSeats = car.NumberOfSeats;
-                carRest.Price = car.Price;
-                carsRest.Add(carRest);
+                foreach (Car car in cars)
+                {
+                    CarRest carRest = new CarRest();
+                    carRest.Manufacturer = car.Manufacturer;
+                    carRest.Model = car.Model;
+                    carRest.NumberOfSeats = car.NumberOfSeats;
+                    carRest.Price = car.Price;
+                    carsRest.Add(carRest);
+                }
             }
             return carsRest;
         }

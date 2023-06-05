@@ -12,12 +12,18 @@ using RentACar.WebApi.Mappers;
 using System.Threading.Tasks;
 using RentACar.Common;
 using RentACar.Common.Responses;
+using RentACar.Service.Common;
 
 namespace RentACar.WebApi.Controllers
 {
     public class CarController : ApiController
     {
+        protected ICarService Service { get; set; }
 
+        public CarController(ICarService service)
+        {
+            Service = service;
+        }
         [HttpGet]
         public async Task<HttpResponseMessage> GetCarsAsync(double? minPrice = null, double? maxPrice = null, int? numberOfSeats = null, int pageSize = 10, int pageNumber = 1, string orderBy = "Id", string sortOrder = "DESC")
         {
@@ -25,8 +31,8 @@ namespace RentACar.WebApi.Controllers
             paging.PageSize = pageSize; paging.CurrentPageNumber = pageNumber;
             sorting.Orderby = orderBy; sorting.SortOrder = sortOrder;
             filtering.MinPrice = minPrice; filtering.MaxPrice = maxPrice; filtering.NumberOfSeats = numberOfSeats;
-            CarService carService = new CarService();
-            CarsResponse response = await carService.GetCarsAsync(paging, sorting, filtering);
+            
+            CarsResponse response = await Service.GetCarsAsync(paging, sorting, filtering);
 
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
             List<CarRest> carsRest =  carMapper.MapToRest(response.Cars);
@@ -41,12 +47,11 @@ namespace RentACar.WebApi.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> GetCarAsync(Guid id)
         {
-            CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             List<Car> cars = new List<Car>();
 
-            cars.Add(await carService.GetCarAsync(id));
+            cars.Add(await Service.GetCarAsync(id));
 
 
             List<CarRest> carsRest = carMapper.MapToRest(cars);
@@ -78,12 +83,11 @@ namespace RentACar.WebApi.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> SaveNewCarAsync([FromBody] CarRest carRest)
         {
-            CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             Car car = carMapper.MapRestToDomain(carRest);
 
-            int affectedRows = await carService.SaveCarAsync(car);
+            int affectedRows = await Service.SaveCarAsync(car);
 
             if (affectedRows > 0)
             {
@@ -95,12 +99,11 @@ namespace RentACar.WebApi.Controllers
         [HttpPut]
         public async Task<HttpResponseMessage> UpdateCarAsync(Guid id, [FromBody] CarRest carRest)
         {
-            CarService carService = new CarService();
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
 
             Car car = carMapper.MapRestToDomain(carRest);
 
-            int affectedRows = await carService.UpdateCarAsync(id, car);
+            int affectedRows = await Service.UpdateCarAsync(id, car);
             if (affectedRows > 0)
             {
 
@@ -112,8 +115,7 @@ namespace RentACar.WebApi.Controllers
         [HttpDelete]
         public async Task<HttpResponseMessage> DeleteCarAsync(Guid id)
         {
-            CarService carService = new CarService();
-            int affectedRows = await carService.DeleteCarAsync(id);
+            int affectedRows = await Service.DeleteCarAsync(id);
 
             if (affectedRows > 0)
             {

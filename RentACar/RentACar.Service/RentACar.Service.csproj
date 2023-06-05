@@ -55,6 +55,10 @@
       <Project>{F4D74F21-D17B-454A-A793-8A6E7C3CD7A3}</Project>
       <Name>RentACar.Model</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RentACar.Repository.Common\RentACar.Repository.Common.csproj">
+      <Project>{F2C7569D-D801-46D6-B7E4-867934DCB733}</Project>
+      <Name>RentACar.Repository.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RentACar.Repository\RentACar.Repository.csproj">
       <Project>{48CF43DC-18D0-4E98-9CE1-0B9D1501F9D3}</Project>
       <Name>RentACar.Repository</Name>
