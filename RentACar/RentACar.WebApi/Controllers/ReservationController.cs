@@ -11,53 +11,53 @@ using RentACar.Service;
 using RentACar.Common.Responses;
 using RentACar.WebApi.Mappers;
 using System.Threading.Tasks;
+using RentACar.Common;
+using System.Web.WebPages;
+using System.Security.Policy;
+using RentACar.Service.Common;
 
 namespace RentAReservation.WebApi.Controllers
 {
     public class ReservationController : ApiController
     {
-        [HttpGet]
-        public async Task<HttpResponseMessage> GetReservationsAsync()
+        public IReservationService Service { get; set; }
+        public ReservationController(IReservationService service)
         {
-            ReservationService reservationService = new ReservationService();
-            List<ReservationResponse> responses = await reservationService.GetReservationsAsync();
+            Service = service;
+        }
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetReservationsAsync(DateTime? fromDate = null, DateTime? toDate = null, int perPageNumber = 10, int currentPageNuber = 1, string orederBy = "Id", string sortOrder = "DESC")
+        {
+            Sorting sorting = new Sorting(); Paging paging = new Paging(); ReservationFiltering filtering = new ReservationFiltering();
+            sorting.SortOrder = sortOrder; sorting.Orderby = orederBy; 
+            paging.CurrentPageNumber = currentPageNuber; paging.PageSize = perPageNumber;
+            
+            if(fromDate == null){ filtering.FromDate = DateTime.MinValue; }
+            else { filtering.FromDate = fromDate; }
+            if(toDate == null) { filtering.ToDate = DateTime.MaxValue; }
+            else { filtering.ToDate = toDate; }
+
+            PagedList<Reservation> response = await Service.GetReservationsAsync(sorting, paging, filtering);
             RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
 
-            List<ReservationRestGet> reservationsRest = reservationMapper.MapToRest(responses);
+            ReservationsRestGet reservationsRest = reservationMapper.MapToRest(response);
 
-            if (reservationsRest.Count == 0)
+            if (reservationsRest == null)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, "There is no Reservations in the database.");
             }
-            return Request.CreateResponse(HttpStatusCode.OK, reservationsRest);
+            return Request.CreateResponse(HttpStatusCode.OK, new { reservationsRest,  });
         }
-        [HttpGet]
-        public async Task<HttpResponseMessage> GetReservationAsync(Guid id)
-        {
-            ReservationService reservationService = new ReservationService();
 
-            ReservationResponse response = await reservationService.GetReservationAsync(id);
-
-            RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
-
-            ReservationRestGet reservationRest = reservationMapper.MapToRest(response);
-
-            if (reservationRest == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound, $"There is no Reservation with Id:{id} in the database.");
-            }
-            return Request.CreateResponse(HttpStatusCode.OK, reservationRest);
-        }
 
         [HttpPost]
         public async Task<HttpResponseMessage> SaveNewReservationAsync([FromBody] ReservationRestPost reservationRest)
         {
-            ReservationService reservationService = new ReservationService();
             RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
 
             Reservation reservation = reservationMapper.MapRestToDomain(reservationRest);
 
-            int affectedRows = await reservationService.SaveReservationAsync(reservation);
+            int affectedRows = await Service.SaveReservationAsync(reservation);
 
             if (affectedRows > 0)
             {
@@ -69,12 +69,11 @@ namespace RentAReservation.WebApi.Controllers
         [HttpPut]
         public async Task<HttpResponseMessage> UpdateReservationAsync(Guid id, [FromBody] ReservationRestPost reservationRest)
         {
-            ReservationService reservationService = new ReservationService();
             RestDomainReservationMapper reservationMapper = new RestDomainReservationMapper();
 
             Reservation reservation = reservationMapper.MapRestToDomain(reservationRest);
 
-            int affectedRows = await reservationService.UpdateReservationAsync(id, reservation);
+            int affectedRows = await Service.UpdateReservationAsync(id, reservation);
             if (affectedRows > 0)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, id);
@@ -85,8 +84,7 @@ namespace RentAReservation.WebApi.Controllers
         [HttpDelete]
         public async Task<HttpResponseMessage> DeleteReservationAsync(Guid id)
         {
-            ReservationService reservationService = new ReservationService();
-            int affectedRows = await reservationService.DeleteReservationAsync(id);
+            int affectedRows = await Service.DeleteReservationAsync(id);
 
             if (affectedRows > 0)
             {

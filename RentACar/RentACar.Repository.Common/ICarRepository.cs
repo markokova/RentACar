@@ -13,9 +13,7 @@ namespace RentACar.Repository.Common
     {
         Task<int> SaveCarAsync(Car car);
 
-        Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering);
-
-        Task<Car> GetCarAsync(Guid id);
+        Task<PagedList<Car>> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering);
 
         Task<int> UpdateCarAsync(Guid id, Car car);
 

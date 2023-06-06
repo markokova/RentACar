@@ -75,11 +75,6 @@ namespace RentACar.Repository
             return people;
         }
 
-        public async Task<Person> GetPersonAsync(Guid id)
-        {
-            return await this.GetPersonByIdAsync(id);
-        }
-
         public async Task<int> UpdatePersonAsync(Guid id, Person newPerson)
         {
             Person oldPerson = await GetPersonByIdAsync(id);

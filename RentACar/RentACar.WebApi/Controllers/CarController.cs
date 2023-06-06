@@ -18,7 +18,7 @@ namespace RentACar.WebApi.Controllers
 {
     public class CarController : ApiController
     {
-        protected ICarService Service { get; set; }
+        protected  ICarService Service { get; set; }
 
         public CarController(ICarService service)
         {
@@ -32,53 +32,18 @@ namespace RentACar.WebApi.Controllers
             sorting.Orderby = orderBy; sorting.SortOrder = sortOrder;
             filtering.MinPrice = minPrice; filtering.MaxPrice = maxPrice; filtering.NumberOfSeats = numberOfSeats;
             
-            CarsResponse response = await Service.GetCarsAsync(paging, sorting, filtering);
+            PagedList<Car> response = await Service.GetCarsAsync(paging, sorting, filtering);
 
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
-            List<CarRest> carsRest =  carMapper.MapToRest(response.Cars);
+            CarsRest carsRest =  carMapper.MapToRest(response);
 
-            if (carsRest.Count == 0)
+            if (carsRest == null)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound, "There is no cars in the database.");
-            }
-            return Request.CreateResponse(HttpStatusCode.OK, new { Cars = carsRest, TotalNumberOfResults = response.TotalNumberOfResults });
-        }
-
-        [HttpGet]
-        public async Task<HttpResponseMessage> GetCarAsync(Guid id)
-        {
-            RestDomainCarMapper carMapper = new RestDomainCarMapper();
-
-            List<Car> cars = new List<Car>();
-
-            cars.Add(await Service.GetCarAsync(id));
-
-
-            List<CarRest> carsRest = carMapper.MapToRest(cars);
-
-            if (cars.Count == 0)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound, $"There is no car with Id:{id} in the database.");
             }
             return Request.CreateResponse(HttpStatusCode.OK, carsRest);
         }
 
-        //TODO - vidit sta cu s getcarbyprice
-
-        //[HttpGet]
-        //public HttpResponseMessage GetCarByPrice(double price)
-        //{
-        //    CarService carService = new CarService();
-
-        //    List<Car> cars = carService.GetCarByPrice(price);
-
-        //    if (cars.Count == 0)
-        //    {
-        //        return Request.CreateResponse(HttpStatusCode.NotFound, "There are no cars this cheap.");
-        //    }
-
-        //    return Request.CreateResponse(HttpStatusCode.OK, cars);
-        //}
 
         [HttpPost]
         public async Task<HttpResponseMessage> SaveNewCarAsync([FromBody] CarRest carRest)
@@ -123,10 +88,5 @@ namespace RentACar.WebApi.Controllers
             }
             return Request.CreateResponse(HttpStatusCode.NotFound, id);
         }
-
-        //private Paging Paginate()
-        //{
-        //    Paging paging = new Paging();
-        //}
     }
 }

@@ -13,8 +13,6 @@ namespace RentACar.Repository.Common
 
         Task<List<Person>> GetPeopleAsync();
 
-        Task<Person> GetPersonAsync(Guid id);
-
         Task<int> UpdatePersonAsync(Guid id, Person person);
 
         Task<int> DeletePersonAsync(Guid id);

@@ -1,4 +1,5 @@
-﻿using RentACar.Model;
+﻿using RentACar.Common;
+using RentACar.Model;
 using RentACar.WebApi.Models;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,10 @@ namespace RentACar.WebApi.Mappers
 {
     public class RestDomainCarMapper
     {
-        public List<CarRest> MapToRest(List<Car> cars)
+        public CarsRest MapToRest(PagedList<Car> cars)
         {
-            List<CarRest> carsRest = new List<CarRest>();
+            CarsRest carsRest = new CarsRest();
+            carsRest.CarsRestList = new List<CarRest>();
 
             if(cars != null)
             {
@@ -22,15 +24,20 @@ namespace RentACar.WebApi.Mappers
                     carRest.Model = car.Model;
                     carRest.NumberOfSeats = car.NumberOfSeats;
                     carRest.Price = car.Price;
-                    carsRest.Add(carRest);
+                    carsRest.CarsRestList.Add(carRest);
                 }
             }
+            carsRest.CurrentPage = cars.CurrentPage;
+            carsRest.TotalPages = cars.TotalPages;
+            carsRest.TotalCount = cars.TotalCount;
+            carsRest.PageSize = cars.PageSize;
             return carsRest;
         }
 
         public CarRest MapToRest(Car car)
         {
             CarRest carRest = new CarRest();
+
             carRest.Manufacturer = car.Manufacturer;
             carRest.Model = car.Model;
             carRest.NumberOfSeats = car.NumberOfSeats;

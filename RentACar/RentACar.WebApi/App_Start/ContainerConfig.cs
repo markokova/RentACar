@@ -10,6 +10,7 @@ using System.Reflection;
 using RentACar.Service.Common;
 using Autofac.Integration.WebApi;
 using System.Web.Http;
+using RentACar.Common;
 
 namespace RentACar.WebApi.App_Start
 {
@@ -24,7 +25,8 @@ namespace RentACar.WebApi.App_Start
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             builder.RegisterType<CarRepository>().As<ICarRepository>();
             builder.RegisterType<CarService>().As<ICarService>();
-
+            builder.RegisterType<ReservationRepository>().As<IReservationRepository>();
+            builder.RegisterType<ReservationService>().As<IReservationService>();
             // Build the container
             IContainer container = builder.Build();
 

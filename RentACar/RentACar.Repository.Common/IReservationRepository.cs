@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RentACar.Common.Responses;
+using RentACar.Common;
 
 namespace RentACar.Repository.Common
 {
@@ -12,9 +13,9 @@ namespace RentACar.Repository.Common
     {
         Task<int> SaveReservationAsync(Reservation reservation);
 
-        Task<List<ReservationResponse>> GetReservationsAsync();
+        Task<PagedList<Reservation>> GetReservationsAsync(Sorting sorting, Paging paging, ReservationFiltering filtering);
 
-        Task<ReservationResponse> GetReservationAsync(Guid id);
+        //Task<ReservationResponse> GetReservationAsync(Guid id);
 
         Task<int> UpdateReservationAsync(Guid id, Reservation reservation);
 

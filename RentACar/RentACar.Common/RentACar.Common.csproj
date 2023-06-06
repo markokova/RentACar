@@ -42,10 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CarFiltering.cs" />
+    <Compile Include="PagedList.cs" />
     <Compile Include="Paging.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Responses\CarsResponse.cs" />
-    <Compile Include="Responses\ReservationResponse.cs" />
+    <Compile Include="ReservationFiltering.cs" />
     <Compile Include="Sorting.cs" />
   </ItemGroup>
   <ItemGroup>

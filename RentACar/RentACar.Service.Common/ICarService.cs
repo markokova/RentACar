@@ -11,9 +11,7 @@ namespace RentACar.Service.Common
 {
     public interface ICarService
     {
-        Task<Car> GetCarAsync(Guid id);
-
-        Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering);
+        Task<PagedList<Car>> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering);
 
         Task<int> SaveCarAsync(Car car);
 

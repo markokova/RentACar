@@ -44,10 +44,10 @@ namespace RentACar.Repository
             }
             return affectedRows;
         }
-        public async Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
+        public async Task<PagedList<Car>> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
         {
-            List<Car> cars = new List<Car>();
-            CarsResponse response = new CarsResponse();
+            List<Car> queriedCars = new List<Car>();
+            int resultsTotalNumber = 0;
 
             StringBuilder queryBuilder = new StringBuilder("SELECT * FROM \"Car\" ");
             StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(*) FROM \"Car\" ");
@@ -65,13 +65,8 @@ namespace RentACar.Repository
                 using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
                 {
                     connection.Open();
-                    //string query = "SELECT * FROM \"Car\" ORDER BY \"Car\".@OrderBy @SortOrder LIMIT @PageSize OFFSET @OffsetValue";
                     using (NpgsqlCommand command = new NpgsqlCommand(queryBuilder.ToString(), connection))
                     {
-                        //if(sorting.SortOrder == "Desc" || sorting.SortOrder == "DESC" || sorting.SortOrder == "desc")
-                        //{
-                        //    queryBuilder.Append("WHERE \"Car\".@OrderBy > ");
-                        //}
                         NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
@@ -83,16 +78,15 @@ namespace RentACar.Repository
                                 car.Model = (string)reader["Model"];
                                 car.NumberOfSeats = (int)reader["NumberOfSeats"];
                                 car.Price = (double)reader["Price"];
-                                cars.Add(car);
+                                queriedCars.Add(car);
                             }
                         }
                         reader.Close();
-                        response.Cars = cars;
                     }
                     using (NpgsqlCommand command = new NpgsqlCommand(countQueryBuilder.ToString(), connection))
                     {
                         object countResult = await command.ExecuteScalarAsync();
-                        response.TotalNumberOfResults = Convert.ToInt32(countResult);
+                        resultsTotalNumber = Convert.ToInt32(countResult);
                     }
                 }
             }
@@ -100,12 +94,8 @@ namespace RentACar.Repository
             {
                 Trace.WriteLine(ex.Message.ToString());
             }
-            return response;
-        }
-
-        public async Task<Car> GetCarAsync(Guid id)
-        {
-            return await this.GetCarByIdAsync(id);
+            PagedList<Car> cars = new PagedList<Car>(queriedCars, resultsTotalNumber, paging.CurrentPageNumber, paging.PageSize);
+            return cars;
         }
 
 

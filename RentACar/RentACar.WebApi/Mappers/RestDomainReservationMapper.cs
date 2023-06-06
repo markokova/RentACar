@@ -1,4 +1,5 @@
-﻿using RentACar.Common.Responses;
+﻿using RentACar.Common;
+using RentACar.Common.Responses;
 using RentACar.Model;
 using RentACar.WebApi.Models;
 using System;
@@ -10,41 +11,34 @@ namespace RentACar.WebApi.Mappers
 {
     public class RestDomainReservationMapper
     {
-        public List<ReservationRestGet> MapToRest(List<ReservationResponse> reservationResponses)
+        public ReservationsRestGet MapToRest(PagedList<Reservation> reservations)
         {
+            //mappers
             RestDomainCarMapper carMapper = new RestDomainCarMapper();
             RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
 
-            List<ReservationRestGet> reservationsRest = new List<ReservationRestGet>();
+            ReservationsRestGet reservationsRest = new ReservationsRestGet();
+            reservationsRest.Reservations = new List<ReservationRestGet>();
 
-            foreach (ReservationResponse reservationResponse in reservationResponses)
+            if (reservations != null)
             {
-                ReservationRestGet reservationRest = new ReservationRestGet();
+                foreach (Reservation reservation in reservations)
+                {
+                    ReservationRestGet reservationRestGet = new ReservationRestGet();
 
-                reservationRest.ReservationDate = reservationResponse.reservation.ReservationDate;
-                reservationRest.PersonRest = personMapper.MapToRest(reservationResponse.person);
-                reservationRest.CarRest = carMapper.MapToRest(reservationResponse.car);
-                reservationsRest.Add(reservationRest);
+                    reservationRestGet.PersonRest = personMapper.MapToRest(reservation.Person);
+                    reservationRestGet.CarRest = carMapper.MapToRest(reservation.Car);
+                    reservationRestGet.ReservationDate = reservation.ReservationDate;
+
+                    reservationsRest.Reservations.Add(reservationRestGet);
+                }
             }
+            reservationsRest.CurrentPage = reservations.CurrentPage;
+            reservationsRest.TotalCount = reservations.Count;
+            reservationsRest.PageSize = reservations.PageSize;
+            reservationsRest.TotalPages = reservations.TotalPages;
+
             return reservationsRest;
-        }
-
-        public ReservationRestGet MapToRest(ReservationResponse reservationResponse)
-        {
-            RestDomainCarMapper carMapper = new RestDomainCarMapper();
-            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
-
-            ReservationRestGet reservationRest = new ReservationRestGet();
-
-            reservationRest.ReservationDate = reservationResponse.reservation.ReservationDate;
-            reservationRest.PersonRest = personMapper.MapToRest(reservationResponse.person);
-            reservationRest.CarRest = carMapper.MapToRest(reservationResponse.car);
-
-            if(reservationResponse.reservation.Id == Guid.Empty)
-            {
-                return null;
-            }
-            return reservationRest;
         }
 
         public Reservation MapRestToDomain(ReservationRestPost reservationRest)

@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using RentACar.Common;
 using RentACar.Common.Responses;
 using RentACar.Model;
 using RentACar.Repository.Common;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,29 +44,45 @@ namespace RentACar.Repository
             return affectedRows;
         }
 
-        public async Task<List<ReservationResponse>> GetReservationsAsync()
+        public async Task<PagedList<Reservation>> GetReservationsAsync(Sorting sorting, Paging paging, ReservationFiltering filtering)
         {
-            Reservation reservation = null; Car car = null; Person person = null;
-            List<ReservationResponse> responses = new List<ReservationResponse>();
+            List<Reservation> queriedReservations = new List<Reservation>();
+            int resultsTotalNumber = 0;
+
+            StringBuilder queryBuilder = new StringBuilder("SELECT r.\"Id\" AS ReservationId, r.\"ReservationDate\", c.\"Id\" AS CarId, c.\"Manufacturer\", c.\"Model\", c.\"NumberOfSeats\", c.\"Price\", p.\"Id\" AS PersonId, p.\"FirstName\", p.\"LastName\", p.\"Email\" " +
+                        "FROM \"Reservation\" r " +
+                        "INNER JOIN \"Car\" c ON r.\"CarId\" = c.\"Id\" " +
+                        "INNER JOIN \"Person\" p ON r.\"PersonId\" = p.\"Id\"");
+            StringBuilder queryResultCount = new StringBuilder("SELECT  COUNT(*) " +
+                        "FROM \"Reservation\" r " +
+                        "INNER JOIN \"Car\" c ON r.\"CarId\" = c.\"Id\" " +
+                        "INNER JOIN \"Person\" p ON r.\"PersonId\" = p.\"Id\"");
 
             try
             {
                 using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
                 {
                     connection.Open();
-                    //string query = "SELECT * FROM \"Reservation\"";
-                    string query = "SELECT r.\"Id\" AS ReservationId, r.\"ReservationDate\", c.\"Id\" AS CarId, c.\"Manufacturer\", c.\"Model\", c.\"NumberOfSeats\", c.\"Price\", p.\"Id\" AS PersonId, p.\"FirstName\", p.\"LastName\", p.\"Email\" " +
-                        "FROM \"Reservation\" r " +
-                        "INNER JOIN \"Car\" c ON r.\"CarId\" = c.\"Id\" " +
-                        "INNER JOIN \"Person\" p ON r.\"PersonId\" = p.\"Id\"";
-                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                    using (NpgsqlCommand command = new NpgsqlCommand())
                     {
+                        queryBuilder = FilterResults(queryBuilder, filtering);
+                        queryBuilder = SortResults(queryBuilder, sorting);
+                        queryBuilder = PageResults(queryBuilder);
+
+                        command.Connection = connection;
+                        command.CommandText = queryBuilder.ToString();
+
+                        command.Parameters.AddWithValue("@OffsetValue", ((paging.CurrentPageNumber - 1) * (paging.PageSize - 1)));
+                        command.Parameters.AddWithValue("@LimitValue", paging.PageSize);
+                        command.Parameters.AddWithValue("@FromDate", filtering.FromDate);
+                        command.Parameters.AddWithValue("@ToDate", filtering.ToDate);
+                        
                         NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
                             while (reader.Read())
                             {
-                                reservation = new Reservation(); car = new Car(); person = new Person();
+                                Reservation reservation = new Reservation(); Car car = new Car(); Person person = new Person();
                                 reservation.Id = (Guid)reader["ReservationId"];
                                 reservation.ReservationDate = (DateTime)reader["ReservationDate"];
                                 reservation.CarId = (Guid)reader["CarId"];
@@ -79,69 +97,22 @@ namespace RentACar.Repository
                                 person.LastName = (string)reader["LastName"];
                                 person.Email = (string)reader["Email"];
 
-                                ReservationResponse response = new ReservationResponse();
-                                response.reservation = reservation; response.car = car; response.person = person;
-                                if (response.reservation.Id != Guid.Empty)
+                                if(reservation.Id != Guid.Empty)
                                 {
-                                    responses.Add(response);
+                                    reservation.Car = car; reservation.Person = person;
+                                    queriedReservations.Add(reservation);
                                 }
                             }
                         }
+                        reader.Close();
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex.Message.ToString());
-            }
-            return responses;
-        }
 
-        //TODO - Is it better to return Dictionary<string,string> as I return here (although there are integers and doubles in car data) or to return
-        //a Tuple (Reservation, Car, Person) response and then in the controller get method return this:
-        //return Request.CreateResponse(HttpStatusCode.OK, new {Reservation = response.reservation, Car = response.car, Person = response.person});
-        //or there is another way to fetch attributes of multilpe objects and return them
+                    queryResultCount = FilterResults(queryResultCount, filtering);
 
-        public async Task<ReservationResponse> GetReservationAsync(Guid id)
-        {
-            Reservation reservation = null; Car car = null; Person person = null;
-            ReservationResponse response = new ReservationResponse();
-            try
-            {
-                using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string query = "SELECT r.\"Id\" AS ReservationId, r.\"ReservationDate\", c.\"Id\" AS CarId, c.\"Manufacturer\",c.\"Model\",c.\"NumberOfSeats\", c.\"Price\", p.\"Id\" AS PersonId, p.\"FirstName\", p.\"LastName\", p.\"Email\" " +
-                        "FROM \"Reservation\" r " +
-                        "INNER JOIN \"Car\" c ON r.\"CarId\" = c.\"Id\" " +
-                        "INNER JOIN \"Person\" p ON r.\"PersonId\" = p.\"Id\" " +
-                        "WHERE r.\"Id\" =@ReservationId";
-                    //string query = "SELECT * FROM \"Reservation\" WHERE \"Id\" = @ReservationId";
-                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                    using (NpgsqlCommand command = new NpgsqlCommand(queryResultCount.ToString(), connection))
                     {
-                        command.Parameters.AddWithValue("@ReservationId", id);
-                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
-                        if (reader.HasRows)
-                        {
-                            reservation = new Reservation(); car = new Car(); person = new Person();
-                            reader.Read();
-                            reservation.Id = (Guid)reader["ReservationId"];
-                            reservation.ReservationDate = (DateTime)reader["ReservationDate"];
-                            car.Id = (Guid)reader["CarId"];
-                            car.Manufacturer = (string)reader["Manufacturer"];
-                            car.Model = (string)reader["Model"];
-                            car.NumberOfSeats = (int)reader["NumberOfSeats"];
-                            car.Price = (double)reader["Price"];
-                            person.Id = (Guid)reader["PersonId"];
-                            person.FirstName = (string)reader["FirstName"];
-                            person.LastName = (string)reader["LastName"];
-                            person.Email = (string)reader["Email"];
-                            reservation.CarId = (Guid)reader["CarId"];
-                            reservation.PersonId = (Guid)reader["PersonId"];
-                            response.reservation = reservation;
-                            response.car = car;
-                            response.person = person;
-                        }
+                        object countResult = await command.ExecuteScalarAsync();
+                        resultsTotalNumber = Convert.ToInt32(countResult);
                     }
                 }
             }
@@ -149,7 +120,9 @@ namespace RentACar.Repository
             {
                 Trace.WriteLine(ex.Message.ToString());
             }
-            return response;
+            PagedList<Reservation> reservations = new PagedList<Reservation>(queriedReservations,resultsTotalNumber,paging.CurrentPageNumber,paging.PageSize);
+
+            return reservations;
         }
 
         public async Task<int> UpdateReservationAsync(Guid id, Reservation newReservation)
@@ -268,26 +241,45 @@ namespace RentACar.Repository
             return reservation;
         }
 
-        //private Dictionary<string, string> ToDictionary((Reservation reservation, Car car, Person person) responseTuple)
-        //{
-        //    if (responseTuple.reservation != null)
-        //    {
-        //        Dictionary<string, string> response = new Dictionary<string, string>()
-        //        {
-        //            {"Reservation Id", responseTuple.reservation.Id.ToString()},
-        //            {"Reservation Date", responseTuple.reservation.ReservationDate.ToString()},
-        //            {"Car Manufacturer",responseTuple.car.Manufacturer },
-        //            {"Car Model", responseTuple.car.Model },
-        //            {"Car number of seats",responseTuple.car.NumberOfSeats.ToString() },
-        //            {"Price [€]", responseTuple.car.Price.ToString() },
-        //            {"First Name", responseTuple.person.FirstName },
-        //            {"Last Name", responseTuple.person.LastName },
-        //            {"Email", responseTuple.person.Email },
+        private StringBuilder FilterResults(StringBuilder builder, ReservationFiltering filtering)
+        {
+            builder.Append(" WHERE 1 = 1");
+            
+            if(filtering != null)
+            {
+                if (filtering.FromDate.HasValue)
+                {
+                    builder.Append(" AND r.\"ReservationDate\" >= @FromDate");
 
-        //        };
-        //        return response;
-        //    }
-        //    return null;
-        //}
+                }
+                if (filtering.ToDate.HasValue)
+                {
+                    builder.Append(" AND  r.\"ReservationDate\" < @ToDate");
+
+                }
+            }
+            return builder;
+        }
+
+        private StringBuilder SortResults(StringBuilder builder, Sorting sorting)
+        {
+            builder.Append($" ORDER BY r.\"{sorting.Orderby}\" ");
+            if(sorting.SortOrder == "DESC")
+            {
+                builder.Append("DESC");
+            }
+            else
+            {
+                builder.Append("ASC");
+            }
+            return builder;
+        }
+
+        private StringBuilder PageResults(StringBuilder builder)
+        {
+            builder.Append(" OFFSET @OffsetValue");
+            builder.Append(" LIMIT @LimitValue");
+            return builder;
+        }
     }
 }

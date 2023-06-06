@@ -30,13 +30,6 @@ namespace RentACar.Service
             return Persons;
         }
 
-        public async Task<Person> GetPersonAsync(Guid id)
-        {
-            PersonRepository personRepository = new PersonRepository();
-
-            return await personRepository.GetPersonAsync(id);
-        }
-
         public async Task<int> UpdatePersonAsync(Guid id, Person newPerson)
         {
             PersonRepository personRepository = new PersonRepository();

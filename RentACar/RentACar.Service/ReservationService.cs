@@ -1,6 +1,8 @@
-﻿using RentACar.Common.Responses;
+﻿using RentACar.Common;
+using RentACar.Common.Responses;
 using RentACar.Model;
 using RentACar.Repository;
+using RentACar.Repository.Common;
 using RentACar.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -12,41 +14,32 @@ namespace RentACar.Service
 {
     public class ReservationService : IReservationService
     {
+        public IReservationRepository Repository { get; set; }
+        public ReservationService(IReservationRepository repository)
+        {
+            Repository = repository;   
+        }
         public async Task<int> SaveReservationAsync(Reservation reservation)
         {
-            ReservationRepository reservationRepository = new ReservationRepository();
             Guid id = Guid.NewGuid();
             reservation.Id = id;
-            int affectedRows = await reservationRepository.SaveReservationAsync(reservation);
+            int affectedRows = await Repository.SaveReservationAsync(reservation);
             return affectedRows;
         }
 
-        public async Task<List<ReservationResponse>> GetReservationsAsync()
+        public async Task<PagedList<Reservation>> GetReservationsAsync(Sorting sorting, Paging paging, ReservationFiltering filtering)
         {
-            ReservationRepository reservationRepository = new ReservationRepository();
-
-            return await reservationRepository.GetReservationsAsync();
-        }
-
-        public async Task<ReservationResponse> GetReservationAsync(Guid id)
-        {
-            ReservationRepository reservationRepository = new ReservationRepository();
-
-            return await reservationRepository.GetReservationAsync(id);
+            return await Repository.GetReservationsAsync(sorting, paging, filtering);
         }
 
         public async Task<int> UpdateReservationAsync(Guid id, Reservation newReservation)
         {
-            ReservationRepository reservationRepository = new ReservationRepository();
-
-            return await reservationRepository.UpdateReservationAsync(id, newReservation);
+            return await Repository.UpdateReservationAsync(id, newReservation);
         }
 
         public async Task<int> DeleteReservationAsync(Guid id)
         {
-            ReservationRepository reservationRepository = new ReservationRepository();
-
-            return await reservationRepository.DeleteReservationAsync(id);
+            return await Repository.DeleteReservationAsync(id);
         }
     }
 }

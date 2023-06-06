@@ -29,15 +29,15 @@ namespace RentACar.WebApi.Mappers
 
         public PersonRest MapToRest(Person person)
         {
+
             PersonRest personRest = new PersonRest();
-            if(person != null)
+
+            if (person != null)
             {
                 personRest.FirstName = person.FirstName;
                 personRest.LastName = person.LastName;
                 personRest.Email = person.Email;
             }
-
-
             return personRest;
         }
 

@@ -15,5 +15,9 @@ namespace RentACar.Model.Common
          Guid CarId { get; set; }
 
          Guid PersonId { get; set; }
+
+         ICar Car { get; set; }
+
+         IPerson Person { get; set; }
     }
 }

@@ -27,16 +27,10 @@ namespace RentACar.Service
             return await Repository.SaveCarAsync(car);
         }
 
-        public async Task<CarsResponse> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
+        public async Task<PagedList<Car>> GetCarsAsync(Paging paging, Sorting sorting, CarFiltering filtering)
         {
 
             return await Repository.GetCarsAsync(paging, sorting, filtering);
-        }
-
-        public async Task<Car> GetCarAsync(Guid id)
-        {
-
-            return await Repository.GetCarAsync(id);
         }
 
 

@@ -32,26 +32,6 @@ namespace RentACar.WebApi.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, peopleRest);
         }
 
-        [HttpGet]
-        public async Task<HttpResponseMessage> GetPersonAsync(Guid id)
-        {
-            PersonService personService = new PersonService();
-            RestDomainPersonMapper personMapper = new RestDomainPersonMapper();
-
-
-            List<Person> people = new List<Person>();
-
-            people.Add(await personService.GetPersonAsync(id));
-
-            List<PersonRest> peopleRest = personMapper.MapToRest(people);
-
-            if (people.Count == 0 || people[0] == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound, $"There is no Person with Id:{id} in the database.");
-            }
-            return Request.CreateResponse(HttpStatusCode.OK, peopleRest);
-        }
-
         [HttpPost]
         public async Task<HttpResponseMessage> SaveNewPersonAsync([FromBody] PersonRest personRest)
         {
